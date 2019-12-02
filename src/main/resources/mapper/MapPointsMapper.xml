@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shuojie.dao.mapsMapper.MapPointsMapper" >
+  <resultMap id="BaseResultMap" type="com.shuojie.domain.maps.MapPoints" >
+    <id column="mid" property="mid" jdbcType="INTEGER" />
+    <result column="points_name" property="pointsName" jdbcType="VARCHAR" />
+    <result column="ma_longitude" property="maLongitude" jdbcType="DOUBLE" />
+    <result column="ma_latitude" property="maLatitude" jdbcType="DOUBLE" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    mid, points_name, ma_longitude, ma_latitude
+  </sql>
+
+  <insert id="insertMapPoints" parameterType="com.shuojie.domain.maps.MapPoints">
+    insert into map_points
+    (points_name,ma_longitude,ma_latitude)
+    values
+    (#{pointsName},#{maLongitude},#{maLatitude})
+  </insert>
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shuojie.dao.systemMappers.SysContactMapper" >
+  <!--<resultMap id="BaseResultMap" type="com.shuojie.domain.SysContact" >-->
+    <!--<id column="sys_contact_id" property="sysContactId" jdbcType="INTEGER" />-->
+    <!--<result column="id" property="id" jdbcType="INTEGER" />-->
+    <!--<result column="sys_contact_text" property="sysContactText" jdbcType="VARCHAR" />-->
+    <!--<result column="sys_contact_status" property="sysContactStatus" jdbcType="VARCHAR" />-->
+    <!--<result column="start_time" property="startTime" jdbcType="VARCHAR" />-->
+    <!--<result column="end_time" property="endTime" jdbcType="VARCHAR" />-->
+    <!--<result column="delete_flag" property="deleteFlag" jdbcType="VARCHAR" />-->
+  <!--</resultMap>-->
+  <!--<sql id="Base_Column_List" >-->
+    <!--sys_contact_id, id, sys_contact_text, sys_contact_status, start_time, end_time, delete_flag-->
+  <!--</sql>-->
+
+  <select id="selectById" parameterType="java.lang.Long" resultType="com.shuojie.domain.system.SysContact">
+    select * from sys_contact where id=#{id} and delete_flag=0
+</select>
+  <update id="deleteById" parameterType="java.lang.Integer" >
+    update sys_contact set delete_flag=1 where sys_contact_id=#{sysContactId}
+  </update>
+  <update id="updateStatus" parameterType="java.lang.Integer" >
+    update sys_contact set sys_contact_status=1 where sys_contact_id=#{sysContactId}
+  </update>
+</mapper>

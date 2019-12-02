@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shuojie.dao.mapsMapper.CurrentInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.shuojie.domain.maps.CurrentInfo" >
+    <id column="cuid" property="cuid" jdbcType="INTEGER" />
+    <result column="line_name" property="lineName" jdbcType="VARCHAR" />
+    <result column="current_shijian" property="currentShijian" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    cuid, line_name,current_shijian
+  </sql>
+
+  <!--当前线路存储-->
+  <insert id="insertCurrentInfo" parameterType="com.shuojie.domain.maps.CurrentInfo" >
+    insert into current_info (line_name,current_shijian)
+    values (#{lineName},#{currentShijian})
+  </insert>
+
+</mapper>

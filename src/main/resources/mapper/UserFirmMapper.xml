@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shuojie.dao.UserFirmMapper" >
+  <resultMap id="BaseResultMap" type="com.shuojie.domain.UserFirm" >
+    <id column="fid" property="fid" jdbcType="INTEGER" />
+    <result column="firm_name" property="firmName" jdbcType="VARCHAR" />
+    <result column="firm_url" property="firmUrl" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    fid, firm_name, firm_url
+  </sql>
+
+
+</mapper>

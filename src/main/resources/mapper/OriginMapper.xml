@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shuojie.dao.mapsMapper.OriginMapper" >
+  <resultMap id="BaseResultMap" type="com.shuojie.domain.maps.Origin" >
+    <id column="orid" property="orid" jdbcType="INTEGER" />
+    <result column="or_name" property="orName" jdbcType="VARCHAR" />
+
+    <collection property="originAndLine" ofType="com.shuojie.domain.maps.OriginLine">
+      <id column="olid" property="olid" jdbcType="INTEGER" />
+      <result column="li_longitude" property="liLongitude" jdbcType="DECIMAL" />
+      <result column="li_latitude" property="liLatitude" jdbcType="DECIMAL" />
+      <result column="orid" property="orid" jdbcType="INTEGER"/>
+    </collection>
+  </resultMap>
+
+  <resultMap id="originName" type="com.shuojie.domain.maps.Origin">
+    <id column="orid" property="orid" jdbcType="INTEGER" />
+    <result column="or_name" property="orName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    orid, or_name, olid
+  </sql>
+
+  <select id="getOriginName" resultMap="originName">
+    select or_name from origin
+  </select>
+  <select id="getByName" resultMap="BaseResultMap" parameterType="com.shuojie.domain.maps.Origin">
+    select * from origin o left join origin_line l on l.orid = o.orid
+    where
+    or_name = #{orName}
+  </select>
+  <select id="getOriginLine" resultMap="BaseResultMap">
+    select * from origin o
+    left join
+      origin_line l on l.orid = o.orid
+  </select>
+</mapper>

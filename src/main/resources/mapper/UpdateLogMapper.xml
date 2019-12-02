@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shuojie.dao.UpdateLogMapper" >
+  <resultMap id="BaseResultMap" type="com.shuojie.domain.UpdateLog" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="update_name" property="updateName" jdbcType="VARCHAR" />
+    <result column="update_text" property="updateText" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, update_name, update_text
+  </sql>
+    <select id="getUpdateLog" resultType="com.shuojie.domain.UpdateLog">
+      select * from update_log;
+    </select>
+
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shuojie.dao.UserMapper" >
+  <resultMap id="BaseResultMap" type="com.shuojie.domain.User" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="VARCHAR" />
+    <result column="firm_id" property="firmId" jdbcType="INTEGER" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="id_number" property="idNumber" jdbcType="CHAR" />
+    <result column="position" property="position" jdbcType="VARCHAR" />
+    <result column="sex" property="sex" jdbcType="VARCHAR" />
+    <result column="login_flag" property="loginFlag" jdbcType="INTEGER"/>
+  </resultMap>
+
+
+  <resultMap id="BaseFirm" type="com.shuojie.domain.User" extends="BaseResultMap">
+      <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="mobile" property="mobile" jdbcType="VARCHAR"/>
+        <result column="username" property="username" jdbcType="VARCHAR" />
+        <result column="password" property="password" jdbcType="VARCHAR" />
+        <!--<result column="firm_name" property="firmName" jdbcType="VARCHAR" />-->
+        <result column="position" property="position" jdbcType="VARCHAR" />
+        <result column="login_flag" property="loginFlag" jdbcType="INTEGER"/>
+        <association property="userFirm" javaType="com.shuojie.domain.UserFirm">
+          <id property="fid" column="fid" jdbcType="INTEGER"/>
+          <result property="firmName" column="firm_name" jdbcType="VARCHAR"/>
+          <result property="firmUrl" column="firm_url" jdbcType="VARCHAR"/>
+        </association>
+  </resultMap>
+
+  <sql id="Base_Column_List" >
+    id, mobile, password, firm_id, username, id_number, affiliation_firm, position,
+    areaname,sex,firmUserId
+  </sql>
+  <!--查询全部-->
+  <select id="selectUser" resultMap="BaseResultMap" >
+    select * from user
+  </select>
+  <!--忘记密码-->
+  <update id="updateUserPassworld" parameterType="com.shuojie.domain.User"  >
+      update user set password = #{password} where mobile = #{ mobile}
+  </update>
+  <select id="getUserByMobile" resultMap="BaseResultMap" parameterType="com.shuojie.domain.User">
+      select * from user where mobile = #{mobile}
+    </select>
+  <select id="getMobileList" resultMap="BaseResultMap" parameterType="list">
+    select mobile from user
+  </select>
+  <!--登录-->
+  <select id="toLogin" resultMap="BaseFirm" parameterType="com.shuojie.domain.User">
+     select * from user u left join user_firm f on(u.firm_id=f.fid) where mobile = #{mobile} and password = #{password}
+  </select>
+  <!--注册-->
+  <insert id="register" parameterType="com.shuojie.domain.User">
+    insert into user (id,mobile,password,firm_id,username,id_number,firm_user_id)
+    values (#{id},#{mobile},#{password},#{firmId},#{username},#{idNumber},#{firmUserId})
+  </insert>
+  <!--修改密码-->
+  <update id="xiugaiUserPassworld" parameterType="com.shuojie.domain.User"  >
+      update user set password = #{password} where id = #{id}
+  </update>
+  <!--登陆状态-->
+  <update id="updateStuse"  parameterType="com.shuojie.domain.User" >
+      update user set login_flag = login_flag + 1 where mobile = #{ mobile}
+  </update>
+  <!--重置登陆状态-->
+  <update id="updateReset"  parameterType="java.lang.String" >
+      update user set login_flag = 0 where mobile = #{ mobile}
+  </update>
+  <!--查看登陆状态-->
+  <select id="selectBytelphone" resultType="java.lang.Integer" parameterType="java.lang.String">
+      select login_flag from user where mobile = #{mobile}
+  </select>
+  <select id="xiugaiGetUserByid" resultMap="BaseResultMap" parameterType="com.shuojie.domain.User">
+      select * from user where id = #{id}
+  </select>
+
+</mapper>
