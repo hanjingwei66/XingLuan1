@@ -13,6 +13,7 @@ import com.shuojie.utils.vo.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 /**
  * 分页展示传感器行为日志
@@ -57,25 +58,29 @@ public class SensorServiceImpl implements SensorService {
                 angular[1]=yAngular;
                 angular[2]=zAngular;
                 zu.setAngular(angular);
-                zu.setXAcceleration(null);
-                zu.setXAngular(null);
-                zu.setXAngularVelocity(null);
-                zu.setYAcceleration(null);
-                zu.setYAngular(null);
-                zu.setYAngularVelocity(null);
-                zu.setZAcceleration(null);
-                zu.setZAngular(null);
-                zu.setZAngularVelocity(null);
+                zu.setXAcceleration(xAcceleration);
+                zu.setXAngular(xAngular);
+                zu.setXAngularVelocity(xAngularVelocity);
+                zu.setYAcceleration(yAcceleration);
+                zu.setYAngular(yAngular);
+                zu.setYAngularVelocity(yAngularVelocity);
+                zu.setZAcceleration(zAcceleration);
+                zu.setZAngular(zAngular);
+                zu.setZAngularVelocity(zAngularVelocity);
             }
             long pages = iPage.getPages();
             long total = iPage.getTotal();
             long current = iPage.getCurrent();
             long size = iPage.getSize();
+            HashMap<Object, Object> map = new HashMap<>();
+            map.put("data",zullProperty);
             result = new Result(200, "SUCCESS", "sensor_findLog_byTime", zullProperty);
             result.setTotal(total);
             result.setPages(pages);
             result.setCurrentPage(current);
             result.setPageSize(size);
+        }else {
+            result = new Result(400, "未查询到数据", "sensor_findLog_byTime");
         }
         return result;
     }

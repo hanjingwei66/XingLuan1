@@ -14,6 +14,6 @@ public class InitMqttClient implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 //        mqttclien.start();
-//        System.out.println("MQTT客户端启动成功");
+        System.out.println("MQTT客户端启动成功");
     }
 }

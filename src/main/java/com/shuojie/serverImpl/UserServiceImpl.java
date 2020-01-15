@@ -165,5 +165,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements IUs
         }
         return baseResult;
     }
-
 }

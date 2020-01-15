@@ -22,4 +22,5 @@ public class SensorBase implements Observer {
     public void remove() {
 
     }
+
 }

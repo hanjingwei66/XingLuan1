@@ -5,11 +5,14 @@ import com.shuojie.domain.User;
 import com.shuojie.service.IUserService;
 import com.shuojie.service.UserMerberService;
 import com.shuojie.utils.vo.Result;
+import com.shuojie.utils.vo.SingleResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -53,10 +56,21 @@ public class UserController {
      return "success";
     }
     @RequestMapping(value = "/login",method = RequestMethod.POST)
-    public Result login(@RequestBody User user){
+    public SingleResult login(@RequestBody User user){
         Result result = userServer.toLogin(user);
-        return result;
+        Map<String, Object> token = new HashMap<>();
+        token.put("token", "admin-token");
+        SingleResult<Map<String, Object>> result1 = SingleResult.buildResult(SingleResult.Status.OJBK, "用户令牌", token);
+        return result1;
  }
+ @RequestMapping(value = "/info",method = RequestMethod.GET)
+    public SingleResult getInfo(@RequestParam String token){
+     Map<String, Object> data = new HashMap<>();
+     data.put("roles", new String[]{"admin"});
+     data.put("name","Super Admin");
+     SingleResult<Map<String, Object>> result = SingleResult.buildResult(SingleResult.Status.OJBK, "用户信息", data);
+     return result;
+    }
  //发送短信
     @RequestMapping(value = "/sendMsg",method = RequestMethod.GET)
     public Result sendMsg(@RequestParam String telephone){

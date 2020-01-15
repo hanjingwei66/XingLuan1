@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("authHandler")
 @ChannelHandler.Sharable
 public class AuthHandler extends ChannelInboundHandlerAdapter {
 

@@ -5,14 +5,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.shuojie.dao.sensorMappers.SensorMapper;
 import com.shuojie.domain.sensorModle.SensorTitle;
 import com.shuojie.domain.sensorModle.ZullProperty;
+import com.shuojie.nettyService.Handler.SensorHandler;
 import com.shuojie.nettyService.Handler.TextWebSocketFrameHandler;
 import com.shuojie.serverImpl.sensorServiceImpl.SensorData;
 import com.shuojie.service.sensorService.SensorAsyncService;
 import com.shuojie.service.sensorService.SensorProperty;
+import com.shuojie.utils.autowiredUtil.SpringUtil;
 import com.shuojie.utils.vo.Result;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -22,9 +25,8 @@ import org.springframework.stereotype.Component;
 
 import java.nio.ByteBuffer;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Observer;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -49,15 +51,17 @@ public class Mqttclien  {
     //过期时间60秒
     @Value("${redis.key.expire.authCode}")
     private Long AUTH_CODE_EXPIRE_SECONDS;
-
+    private static final Map<Integer, SensorData> sensorMap = new ConcurrentHashMap<>();
     public String mqttTopic="123";
     Result result=null;
     SensorData sensorData = new SensorData();
+
     public  SensorData getPoint(){
         return this.sensorData;
     }
 //    @PostConstruct
     public void start() throws Exception {
+        SensorHandler sensorHandler = (SensorHandler) SpringUtil.getBean("SensorHandler");
         String broker = "tcp://47.98.193.195:1883";
         String clientId = "JavaSample12";
         //Use the memory persistence
@@ -65,6 +69,7 @@ public class Mqttclien  {
         ZullProperty zullProperty=new ZullProperty();
         SensorTitle tt=new SensorTitle();
         try {
+
             MqttClient sampleClient = new MqttClient(broker, clientId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setUserName("suojie");
@@ -76,13 +81,14 @@ public class Mqttclien  {
             String topic = mqttTopic;
             System.out.println("Subscribe to topic:" + topic);
             sampleClient.subscribe(topic);
+            Map hashMap = new HashMap<>();
             sampleClient.setCallback(new MqttCallback() {
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String theMsg = MessageFormat.format("{0} is arrived for topic {1}.", new String(message.getPayload()), topic);
+//                    String theMsg = MessageFormat.format("{0} is arrived for topic {1}.", new String(message.getPayload()), topic);
 //                    redisService.set(REDIS_KEY_PREFIX_AUTH_CODE + topic,new String(message.getPayload()));
 //                    redisService.expire(REDIS_KEY_PREFIX_AUTH_CODE + );
-                    System.out.println(theMsg);
-                    System.out.println("getload"+new String(message.getPayload()));
+//                    System.out.println(theMsg);
+//                    System.out.println("getload"+new String(message.getPayload()));
                     byte[] payload = message.getPayload();
 //                    String s = EncodUtil.BinaryToHexString(payload);
 //                    byte[] bytes = s.getBytes();
@@ -111,55 +117,11 @@ public class Mqttclien  {
                             dataBytes2 = Arrays.copyOfRange(payload, 27, payload.length);
                         }
                         sensorData.setSensorData(dataBytes2);
+                        sensorMap.put(wrap.getInt(6),sensorData);
+                        sensorHandler.checkSensor(sensorMap);
                         sensorData.notifyObservers();
-//                        byte[] dataBytes = new byte[wrap.getShort(25)];
-//                        if(payload.length>=69) {
-//                            byte[] dataBytes = Arrays.copyOfRange(payload, 27, payload.length);
-//                            //电压
-//                            Integer VD00 = sensorProperty.computeVoltage(dataBytes[0], dataBytes[1], dataBytes[2]);
-//                            Integer VD01 = sensorProperty.computeVoltage(dataBytes[3], dataBytes[4], dataBytes[5]);
-//                            Integer VD10 = sensorProperty.computeVoltage(dataBytes[6], dataBytes[7], dataBytes[8]);
-//                            Integer VD11 = sensorProperty.computeVoltage(dataBytes[9], dataBytes[10], dataBytes[11]);
-////                           //激光点的xy轴坐标
-//                            Double Px = sensorProperty.computeSupersonic(dataBytes[12], dataBytes[13], dataBytes[14]);
-//                            Double Py = sensorProperty.computeSupersonic(dataBytes[15], dataBytes[16], dataBytes[17]);
-////                          //超声波测距
-//                            Double Distance = sensorProperty.computeDistance(dataBytes[18], dataBytes[19]);
-//
-////                        Integer DataL = sensorProperty.computeTENAXIS(dataBytes[20], dataBytes[21]);
-//                           //加速度xyz
-//                        List AccelerationList = sensorProperty.computeAcceleration(dataBytes[20], dataBytes[21], dataBytes[22], dataBytes[23], dataBytes[24], dataBytes[25]);
-//////                       //角速度xyz
-//                        List AngularVelocityList = sensorProperty.computeAngularVelocity(dataBytes[26], dataBytes[27], dataBytes[28], dataBytes[29], dataBytes[30], dataBytes[31]);
-////                        //角度
-//                        List AngularList = sensorProperty.computeAngular(dataBytes[32], dataBytes[33], dataBytes[34], dataBytes[35], dataBytes[36], dataBytes[37]);
-////                        //高度
-//                            double hight= sensorProperty.computeHight(dataBytes[38], dataBytes[39], dataBytes[40], dataBytes[41]);
-//////                        tt.setSensorData(dataBytes.toString());
-//                            zullProperty.setJiedianid(wrap.getInt(6));
-//                            zullProperty.setTime(tt.getTime());
-//                            zullProperty.setVoltage1(VD00);
-//                            zullProperty.setVoltage2(VD01);
-//                            zullProperty.setVoltage3(VD10);
-//                            zullProperty.setVoltage4(VD11);
-//                            zullProperty.setXSupersonic(Px);
-//                            zullProperty.setYSupersonic(Py);
-//                            zullProperty.setDistance(Distance);
-//                            zullProperty.setAcceleration(AccelerationList);
-//                            zullProperty.setAngularVelocity(AngularVelocityList);
-//                            zullProperty.setAngular(AngularList);
-//                            zullProperty.setHight(hight);
-//
-//                          log.info("getload"+new String(message.getPayload())+"id"+message.getId()+message.getQos());
-//
-//                           result=new Result(200,"success","sensor_init",zullProperty);
-//                            String jsonzullProperty = JSONObject.toJSONString(result);
-//                           textWebSocketFrameHandler.send(jsonzullProperty);
-//
-//                            return;
-//
-//                        }
-                    log.info("getload"+new String(message.getPayload())+"id"+message.getId()+message.getQos());
+
+//                    log.info("getload"+new String(message.getPayload())+"id"+message.getId()+message.getQos());
 
                   }
 

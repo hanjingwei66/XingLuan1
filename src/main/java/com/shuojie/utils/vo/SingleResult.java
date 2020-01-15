@@ -9,7 +9,7 @@ import java.util.List;
 public class SingleResult<T> {
     private static volatile SingleResult singleResult;
 
-    private String code;
+    private Integer code;
     private String message;
     private String status;
     private String command;
@@ -31,29 +31,29 @@ public class SingleResult<T> {
     }
 
 
-    private SingleResult(String status, String message, T data) {
-        this.status = status;
+    private SingleResult(Integer code, String message, T data) {
+        this.code = code;
         this.message = message;
         this.data = data;
     }
 
-    private SingleResult(String status, String message) {
-        this.status = status;
+    private SingleResult(Integer code, String message) {
+        this.code = code;
         this.message = message;
     }
 
-    public SingleResult(String  code, String message, String command, T data) {
+    public SingleResult(Integer  code, String message, String command, T data) {
         this.code = code;
         this.message = message;
         this.command = command;
         this.data = data;
     }
-    public SingleResult(String code, String message, String command) {
+    public SingleResult(Integer code, String message, String command) {
         this.code = code;
         this.message = message;
         this.command = command;
     }
-    public SingleResult(String code, String message, String command,List<T> list) {
+    public SingleResult(Integer code, String message, String command,List<T> list) {
         this.code = code;
         this.message = message;
         this.command = command;
@@ -79,7 +79,7 @@ public class SingleResult<T> {
         return new SingleResult<T>(status.getCode(), message);
     }
     public static <T> SingleResult<T> buildResult(Status status, String message,String command) {
-        return new SingleResult<T>(status.getCode(), message);
+        return new SingleResult<T>(status.getCode(), message,command);
     }
 
 //    public static <T> SingleResult<T> buildResult(Status status, T data) {
@@ -100,15 +100,15 @@ public class SingleResult<T> {
         /**
          * 状态
          */
-       OJBK("200","SUCCESS","api"),OK("200", "SUCCESS"), BAD_REQUEST("400", "错误的请求"), UNAUTHORIZED("401", "禁止访问"), NOT_FOUND("404",
-                "没有可用的数据"),  PWD_EEOR("300",
-                "密码错误"),EXIT("403",
-                "已经存在"),INTERNAL_SERVER_ERROR("500",
-                "服务器遇到了一个未曾预料的状况"), SERVICE_UNAVAILABLE("503", "服务器当前无法处理请求"), ERROR("9999", "数据不能为空");
+       OJBK(200,"SUCCESS","api"),OK(20000, "SUCCESS"), BAD_REQUEST(400, "错误的请求"), UNAUTHORIZED(401, "禁止访问"), NOT_FOUND(404,
+                "没有可用的数据"),  PWD_EEOR(300,
+                "密码错误"),EXIT(403,
+                "已经存在"),INTERNAL_SERVER_ERROR(500,
+                "服务器遇到了一个未曾预料的状况"), SERVICE_UNAVAILABLE(503, "服务器当前无法处理请求"), ERROR(9999, "数据不能为空");
         /**
          * 状态码,长度固定为6位的字符串.
          */
-        private String code;
+        private Integer code;
 
         /**
          * 错误信息.
@@ -119,16 +119,16 @@ public class SingleResult<T> {
          */
         private String command;
 
-        Status(String code, String reason) {
+        Status(Integer code, String reason) {
             this.code = code;
             this.reason = reason;
         }
-        Status(String code, String reason,String command) {
+        Status(Integer code, String reason,String command) {
             this.code = code;
             this.reason = reason;
             this.command =command;
         }
-        public String getCode() {
+        public Integer getCode() {
             return code;
         }
 

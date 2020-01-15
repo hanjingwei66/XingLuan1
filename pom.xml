@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.shuojie</groupId>
-    <artifactId>transport</artifactId>
+    <artifactId>shuojie</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>transport</name>
     <description>Demo project for Spring Boot</description>
@@ -121,11 +121,21 @@
             <artifactId>java-jwt</artifactId>
             <version>3.2.0</version>
         </dependency>
-
+        <!--单元测试-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!--邮件-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version> 4.12</version>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>

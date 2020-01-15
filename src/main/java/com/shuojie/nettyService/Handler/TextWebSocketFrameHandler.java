@@ -6,6 +6,9 @@ import com.shuojie.domain.Contact;
 import com.shuojie.domain.User;
 import com.shuojie.domain.system.Session;
 import com.shuojie.domain.system.SysContact;
+import com.shuojie.mqttClient.Mqttclien;
+import com.shuojie.nettyService.command.Command;
+import com.shuojie.serverImpl.sensorServiceImpl.SensorData;
 import com.shuojie.service.ContactService;
 import com.shuojie.service.IUserService;
 import com.shuojie.service.UpdateLogService;
@@ -16,10 +19,8 @@ import com.shuojie.utils.nettyUtil.LoginCheckUtil;
 import com.shuojie.utils.nettyUtil.SessionUtil;
 import com.shuojie.utils.vo.Result;
 import com.shuojie.utils.vo.SingleResult;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -57,13 +58,17 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
     private UpdateLogService updateLogService;
     @Autowired
     AuthHandler authHandler;
+    @Autowired
+    private Mqttclien mqttclien;
+    SensorData sensorData;
+    private boolean flag=false;
 //    @Autowired
 //    private SubMsg subMsg;
 //    private static UserMerberService usermerberservice;
 //    private static IUserService userServer;
 //    private static ContactService contactServer;
-    public static ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-
+/**    public static ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+*/
 //    static {
 ////        usermerberservice = SpringUtil.getBean(UserMerberService.class);
 ////        userServer = SpringUtil.getBean(IUserService.class);
@@ -98,26 +103,35 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
     //读到客户端的内容并且向客户端去写内容
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
-        channels.add(ctx.channel());
+
+        //        //        channels.add(ctx.channel());
+////        ByteBuf buf = ctx.alloc().directBuffer();//从 channel 获取 ByteBufAllocator 然后分配一个 ByteBuf（堆外分配内存）
+////        ByteBuf buf = ctx.alloc().heapBuffer();//堆内分配内存
+//        InetSocketAddress  socketAddress= (InetSocketAddress)ctx.channel().remoteAddress();
+//        System.out.println("收到" + ctx.channel().id().asLongText() + "发来的消息：" + msg.text()+"ip"+socketAddress.getAddress().getHostAddress());
+//
+//        JSONObject json = JSONObject.parseObject(msg.text().toString());//json字符串转json对象
+//        String command = json.getString("command");
+//        Class<?> comand = Class.forName("com.shuojie.nettyService.command."+command);
+//        Command command1=(Command)comand.newInstance();
+//        command1.reponse(ctx,msg);
+//        if (!command.substring(0, 4).equals("api_")) {
+//            ctx.fireChannelRead(msg);
+//        }else {
+//            ReferenceCountUtil.release(msg);
+//        }
+//        channels.add(ctx.channel());
 //        ByteBuf buf = ctx.alloc().directBuffer();//从 channel 获取 ByteBufAllocator 然后分配一个 ByteBuf（堆外分配内存）
 //        ByteBuf buf = ctx.alloc().heapBuffer();//堆内分配内存
         InetSocketAddress  socketAddress= (InetSocketAddress)ctx.channel().remoteAddress();
         System.out.println("收到" + ctx.channel().id().asLongText() + "发来的消息：" + msg.text()+"ip"+socketAddress.getAddress().getHostAddress());
 
-//        if(msg instanceof WebSocketFrame){
-//
-//        }else{
-////            buf.retain();//检查引用计数器是否是 1
-//            ctx.fireChannelRe(msg);
-//        }
         JSONObject json = JSONObject.parseObject(msg.text().toString());//json字符串转json对象
         String command = json.getString("command");
         User user = new User();
         Contact contact = new Contact();
 
         if (!command.substring(0, 4).equals("api_")) {
-//            buf.retain();//检查引用计数器是否是 1
-//            msg.retain();
             ctx.fireChannelRead(msg);
         }else {
             ReferenceCountUtil.release(msg);
@@ -137,13 +151,13 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
                 ctx.writeAndFlush(new TextWebSocketFrame(loginRespone));
                 if (result.getCode() == 200) {
                     LoginCheckUtil.markAsLogin(ctx.channel());//给当前的通道打上登录标记；
+                    //LoginCheckUtil.noSensor(ctx.channel());//不发送传感器数据
                     User user2 = (User)result.getData();
                     SessionUtil.bindSession(new Session(user2.getId(),user2.getUsername()),ctx.channel());//绑定session用map管理用户id为key channel为value
-                    this.ctx=ctx;//存储到 ChannelHandlerContext的引用（用于传感器模块引用）
+                   // this.ctx=ctx;//存储到 ChannelHandlerContext的引用（用于传感器模块引用）
                 } else {
 //                    ctx.channel().writeAndFlush(new TextWebSocketFrame());
                 }
-
                 break;
             case "api_logout":
 
@@ -153,7 +167,7 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
                 SessionUtil.unBindSession(ctx.channel());
                 //登出之后加回校验
                 ctx.pipeline().addAfter("TextWebSocketFrameHandler","authHandler",authHandler);
-                channels.remove(ctx.channel());
+//                channels.remove(ctx.channel());
                 break;
             //注册
             case "api_register":
@@ -259,18 +273,32 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
                 String getUpdateLogReponse = JSONObject.toJSONString(updateLog);
                 ctx.writeAndFlush(new TextWebSocketFrame(getUpdateLogReponse));
                 break;
+            case "api_sonAccount":
+                Session session = SessionUtil.getSession(ctx.channel());
+                Long userId2 = session.getUserId();
+                this.flag= true;
+                SingleResult singleResult=SingleResult.buildResult(SingleResult.Status.OJBK,"SUCCESS","api_sonAccount");
+                String respon = JSONObject.toJSONString(singleResult);
+                ctx.writeAndFlush(new TextWebSocketFrame(respon));
+                break;
+            case"api_remove_sonAccount":
+                this.flag= false;
+                SingleResult api_remove_sonAccount=SingleResult.buildResult(SingleResult.Status.OK,"SUCCESS","api_sonAccount");
+                String respons = JSONObject.toJSONString(api_remove_sonAccount);
+                ctx.writeAndFlush(new TextWebSocketFrame(respons));
+                break;
 //                sysContactService.deleteById(sysContactId);
 //                System.out.println(contectlist);
 //                ctx.channel().writeAndFlush(new TextWebSocketFrame(contectlist));
 
         }
 
-        for (Channel channel : channels) {
-            //将消息发送到所有客户端
-//            channel.writeAndFlush(new TextWebSocketFrame(msg.text()));
-
-        }
-        channels.writeAndFlush("发送所有建立连接设备");
+//        for (Channel channel : channels) {
+//            //将消息发送到所有客户端
+////            channel.writeAndFlush(new TextWebSocketFrame(msg.text()));
+//
+//        }
+//        channels.writeAndFlush("发送所有建立连接设备");
 
     }
 
@@ -279,11 +307,11 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         //打印出channel唯一值，asLongText方法是channel的id的全名
         Channel incoming = ctx.channel();
-        channels.add(ctx.channel());
-        for (Channel channel : channels) {
-            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 加入\n"));
-            System.out.println("123");
-        }
+//        channels.add(ctx.channel());
+//        for (Channel channel : channels) {
+//            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 加入\n"));
+//            System.out.println("123");
+//        }
         InetSocketAddress  socketAddress= (InetSocketAddress)ctx.channel().remoteAddress();
         System.out.println("收到" + ctx.channel().id().asLongText() + "ip"+socketAddress.getAddress().getHostAddress());
         System.out.println("handlerAdded：" + ctx.channel().id().asLongText() + "你好世界");
@@ -292,19 +320,24 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         Channel incoming = ctx.channel();
-        for (Channel channel : channels) {
-            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 离开\n"));
-        }
-
-        channels.remove(ctx.channel());
+//        for (Channel channel : channels) {
+//            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 离开\n"));
+//        }
+//
+//        channels.remove(ctx.channel());
         System.out.println("handlerRemoved：" + ctx.channel().id().asLongText());
-        ctx.close();
+
+
         ctx.channel().close();
+        ctx.close();
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+
+        ctx.channel().close();
+        ctx.close();
     }
 
     /**
@@ -318,16 +351,46 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
         log.info("【channelActive】=====>" + ctx.channel());
     }
     public void send(String msg) {
-        if(ctx!=null) {
-            ctx.writeAndFlush(new TextWebSocketFrame(msg));
+        //发送传感器数据
+//        if(ctx!=null) {
+//            ctx.writeAndFlush(new TextWebSocketFrame(msg));
+//        }
+        Map<String, Channel> map= SessionUtil.getChannelMap();
+        for (Map.Entry<String, Channel> entry : map.entrySet()) {
+            boolean b = LoginCheckUtil.hasSensor(entry.getValue());//判断当前管道是否打上标记
+            //临时指定id
+            if(b||(entry.getKey().equals("1")&&this.flag)){
+                entry.getValue().writeAndFlush(new TextWebSocketFrame(msg));
+            }
+
         }
     }
-
-//
-//    @Override
-//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-//        System.out.println("异常发生");
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        ctx.fireChannelUnregistered();
+        sensorData = mqttclien.getPoint();
+        boolean b = LoginCheckUtil.hasSensor(ctx.channel());
+        Session session = SessionUtil.getSession(ctx.channel());
+        if(session!=null && session.getUserId()==1L){
+            LoginCheckUtil.noSensor(ctx.channel());
+            this.flag=false;
+        }
+        if(b){
+            sensorData.clearObserver();
+        }
+        ctx.channel().close();
+        ctx.close();
+        System.out.println("断开连接");
+    }
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println("异常发生");
 //        ctx.close();
 //        ctx.channel().close();
-//    }
+        System.out.println("Server exceptionCaught");
+        cause.printStackTrace();
+        ctx.channel().close();
+        ctx.close();
+    }
+
 }

@@ -12,21 +12,8 @@ import java.net.InetSocketAddress;
 
 @Component
 @Order(value = 2)
-public class InitNettyServer implements CommandLineRunner {
-    @Value("${netty.host}")
-    private String host;
-    @Value("${netty.port}")
-    private int port;
-    @Autowired
-    private MyServer myServer;
+public class InitNettyServer  {
 
-    @Override
-    public void run(String... args) throws Exception {
-//       myServer.start();
-        InetSocketAddress address = new InetSocketAddress(host, port);
-        ChannelFuture channelFuture = myServer.bing(address);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> myServer.destroy()));
-       channelFuture.channel().closeFuture().sync();
-       System.out.println("Netty 服务端启动成功");
-    }
+
+
 }

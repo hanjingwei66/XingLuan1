@@ -20,6 +20,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.PlatformDependent;
 import lombok.extern.slf4j.Slf4j;
@@ -72,11 +73,9 @@ public class MapsWebSocketFrameHandle extends SimpleChannelInboundHandler<TextWe
         Model model = new Model();
 
         if (!command.substring(0, 4).equals("maps")) {
-//            buf.retain();//检查引用计数器是否是 1
-            msg.retain();
             ctx.fireChannelRead(msg);
         }
-
+        ReferenceCountUtil.release(msg);
         switch (command) {
 
             //添加当前线路line_name,clid,current_shijian

@@ -10,6 +10,7 @@ import com.shuojie.service.sensorService.SensorProperty;
 import com.shuojie.service.sensorService.SensorSubject;
 import com.shuojie.utils.autowiredUtil.SpringUtil;
 import com.shuojie.utils.vo.Result;
+import com.shuojie.utils.vo.SingleResult;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.text.SimpleDateFormat;
@@ -107,8 +108,9 @@ public class LaserSensorImpl implements Observer {
                 SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 LaserSensor.setUserTime(sf.format(date));
                 asyncService.executeAsync(LaserSensor);//异步插入
+                SingleResult<LaserSensor> result1 = SingleResult.buildResult(SingleResult.Status.OK, "SUCCESS", "sensor_laser", LaserSensorVo);
                 result = new Result(200, "SUCCESS", "sensor_laser", LaserSensorVo);
-                String LaserSensor = JSONObject.toJSONString(result);
+                String LaserSensor = JSONObject.toJSONString(result1);
                 textWebSocketFrameHandler.send(LaserSensor);
             }
         }

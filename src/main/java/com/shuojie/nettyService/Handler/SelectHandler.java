@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.ReferenceCountUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,11 +39,11 @@ public class SelectHandler extends SimpleChannelInboundHandler<TextWebSocketFram
 //        command.substring(0, 4).equals("api_")
         String command_prefix = command.substring(0, 4);
         switch (command_prefix){
-            case "api_":
-                textWebSocketFrameHandler.channelRead0(ctx,msg);
-              break;
+//            case "api_":
+//                textWebSocketFrameHandler.channelRead0(ctx,msg);
+//              break;
             case "comm":
-                commonHandler.channelRead0(ctx,json);
+                commonHandler.channelRead0(ctx,msg);
                 break;
             case "sens":
                 sensorHandler.channelRead0(ctx,msg);
@@ -51,5 +52,6 @@ public class SelectHandler extends SimpleChannelInboundHandler<TextWebSocketFram
                 mapsWebSocketFrameHandle.channelRead0(ctx,msg);
                 break;
         }
+        ReferenceCountUtil.release(json);
     }
 }

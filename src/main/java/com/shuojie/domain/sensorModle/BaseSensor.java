@@ -7,6 +7,7 @@ import lombok.Data;
 public class BaseSensor extends BaseEntity{
 
     private Long sensorId;//传感器id
+    private String sensorName;
     private Integer sensorType;//传感器类型 0 测角 1测距 2 激光 3十轴
     private Integer power;//电量 0-100;
     private Integer status;//状态0，正常 1，非正常

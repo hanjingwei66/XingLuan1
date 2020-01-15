@@ -13,4 +13,15 @@ public class LoginCheckUtil {
 
         return loginAttr.get() != null;
     }
+    public static void Sensor(Channel channel) {
+        channel.attr(Attributes.SENSOR).set(true);
+    }
+    public static void noSensor(Channel channel) {
+        channel.attr(Attributes.SENSOR).set(null);
+    }
+    public static boolean hasSensor(Channel channel) {
+        Attribute<Boolean> SensorAttr = channel.attr(Attributes.SENSOR);
+
+        return SensorAttr.get() != null;
+    }
 }

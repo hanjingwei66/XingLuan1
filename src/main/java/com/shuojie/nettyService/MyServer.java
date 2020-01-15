@@ -51,6 +51,7 @@ public class MyServer {
             channelFuture.addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
+
                     if(!channelFuture.isSuccess()){
                         channelFuture.cause().printStackTrace();
                     }

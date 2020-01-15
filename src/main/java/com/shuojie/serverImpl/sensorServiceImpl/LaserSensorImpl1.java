@@ -55,15 +55,15 @@ public class LaserSensorImpl1 implements LaserSensorService {
                     angular[1]=yAngular;
                     angular[2]=zAngular;
                     zu.setAngular(angular);
-                    zu.setXAcceleration(null);
-                    zu.setXAngular(null);
-                    zu.setXAngularVelocity(null);
-                    zu.setYAcceleration(null);
-                    zu.setYAngular(null);
-                    zu.setYAngularVelocity(null);
-                    zu.setZAcceleration(null);
-                    zu.setZAngular(null);
-                    zu.setZAngularVelocity(null);
+                    zu.setXAcceleration(xAcceleration);
+                    zu.setXAngular(xAngular);
+                    zu.setXAngularVelocity(xAngularVelocity);
+                    zu.setYAcceleration(yAcceleration);
+                    zu.setYAngular(yAngular);
+                    zu.setYAngularVelocity(yAngularVelocity);
+                    zu.setZAcceleration(zAcceleration);
+                    zu.setZAngular(zAngular);
+                    zu.setZAngularVelocity(zAngularVelocity);
                 }
                 long pages = iPage.getPages();
                 long total = iPage.getTotal();

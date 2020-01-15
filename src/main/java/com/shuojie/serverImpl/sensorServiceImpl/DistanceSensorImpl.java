@@ -41,6 +41,9 @@ public class DistanceSensorImpl implements Observer {
     private SensorSubject sensorData;
     public DistanceSensorImpl(){
     }
+//    public static void getInstance(){
+//
+//    }
     public DistanceSensorImpl(SensorSubject sensorData){
         this.sensorData=sensorData;
         sensorData.registerObserver(this);
@@ -121,9 +124,9 @@ public class DistanceSensorImpl implements Observer {
                 SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 zullProperty.setUserTime(sf.format(date));
                 asyncService.executeAsync(zullProperty);//异步插入
-                SingleResult<ZullProperty> result1 = SingleResult.buildResult(SingleResult.Status.OK, "success", "sensor_distance", zullPropertyVo);
-                result = new Result(200, "SUCCESS", "sensor_distance", zullPropertyVo);
-                String jsonzullProperty = JSONObject.toJSONString(result);
+                SingleResult<ZullProperty> result1 = SingleResult.buildResult(SingleResult.Status.OK, "SUCCESS", "sensor_distance", zullPropertyVo);
+              //  result = new Result(200, "SUCCESS", "sensor_distance", zullPropertyVo);
+                String jsonzullProperty = JSONObject.toJSONString(result1);
                 textWebSocketFrameHandler.send(jsonzullProperty);
             }
         }

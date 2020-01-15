@@ -19,9 +19,23 @@ public class SensorEventImpl implements SensorEventService {
     }
 
     @Override
+    public void update(SensorEvent sensorEvent) {
+        QueryWrapper<SensorEvent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("sensor_event_name",sensorEvent.getSensorEventName());
+        sensorEventMapper.update(sensorEvent,queryWrapper);
+    }
+
+    @Override
     public List<SensorEvent> findList(Long userId) {
         QueryWrapper<SensorEvent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id",userId);
+        List<SensorEvent> sensorEvents = sensorEventMapper.selectList(queryWrapper);
+        return sensorEvents;
+    }
+
+    @Override
+    public List<SensorEvent> findAll() {
+        QueryWrapper<SensorEvent> queryWrapper = new QueryWrapper<>();
         List<SensorEvent> sensorEvents = sensorEventMapper.selectList(queryWrapper);
         return sensorEvents;
     }

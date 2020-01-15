@@ -10,6 +10,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.ReferenceCountUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -21,25 +22,18 @@ import java.util.List;
 
 @Component
 @ChannelHandler.Sharable
-public class CommonHandler extends SimpleChannelInboundHandler<JSONObject> {
+public class CommonHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
     @Autowired
     private PictureListService pictureListService;
     @Autowired
     RestTemplate restTemplate;
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, JSONObject json) throws Exception {
-        //JSONObject json = JSONObject.parseObject(msg.text());//json字符串转json对象
+    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+        JSONObject json = JSONObject.parseObject(msg.text());//json字符串转json对象
         String command = json.getString("command");
-        ByteBuf buf = ctx.alloc().directBuffer();
-//        try {
-//            if (!command.substring(0, 6).equals("common")) {
-////                buf.retain();//检查引用计数器是否是 1
-//                msg.retain();
-//                ctx.fireChannelRead(msg);
-//            }
-//        } finally {
-////            buf.release();
-//        }
+        System.out.println("之前的引用计数："+msg.refCnt());
+        ReferenceCountUtil.release(msg);
+        System.out.println("之后的引用计数："+msg.refCnt());
         switch (command) {
             case "common_pictureList"://图例集
                 Integer type = json.getInteger("type");
@@ -75,39 +69,43 @@ public class CommonHandler extends SimpleChannelInboundHandler<JSONObject> {
 //                System.out.println(response);
                 break;
             case "common_weather"://天气
-                InetSocketAddress socketAddress= (InetSocketAddress)ctx.channel().remoteAddress();
-                System.out.println("收到" + ctx.channel().id().asLongText() + "ip"+socketAddress.getAddress().getHostAddress());
-                AddressUtils addressUtils = new AddressUtils();
-//                String ip = "47.98.193.195";
-                String ip =socketAddress.getAddress().getHostAddress();
-                String address = "";
                 try {
-                    address = addressUtils.getAddresses("ip=" + ip, "utf-8");
-                }catch (UnsupportedEncodingException e) {
+                    InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+                    System.out.println("收到" + ctx.channel().id().asLongText() + "ip" + socketAddress.getAddress().getHostAddress());
+                    AddressUtils addressUtils = new AddressUtils();
+//                String ip = "47.98.193.195";
+                    String ip = socketAddress.getAddress().getHostAddress();
+                    String address = "";
+                    try {
+                        address = addressUtils.getAddresses("ip=" + ip, "utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    JSONObject jsonObject = JSONObject.parseObject(address);
+
+                    jsonObject = jsonObject.getJSONObject("data");
+                    //通过相应的get方法,获取相应的属性
+
+                    String city = jsonObject.getString("city");//城市
+
+                    System.out.println("解析得到的地址为：" + city + "市,");
+                    String apiURL = "";
+                    if (city.equals("内网IP")) {
+                        apiURL = "http://wthrcdn.etouch.cn/weather_mini?city=" + "杭州市";
+                    } else {
+                        apiURL = "http://wthrcdn.etouch.cn/weather_mini?city=" + city;
+                    }
+
+                    ResponseEntity<String> responseEntity = restTemplate.getForEntity(apiURL, String.class);
+                    Object parse = JSONObject.parse(responseEntity.getBody());
+                    Result result1 = new Result(200, "SUCCESS", "common_weather", parse);
+                    String Respone = JSONObject.toJSONString(result1);
+
+                    ctx.channel().writeAndFlush(new TextWebSocketFrame(Respone));
+                    System.out.println(responseEntity.getBody());
+                }catch (Exception e){
                     e.printStackTrace();
                 }
-                JSONObject jsonObject= JSONObject.parseObject(address);
-
-                jsonObject = jsonObject.getJSONObject("data");
-                //通过相应的get方法,获取相应的属性
-
-                String city = jsonObject.getString("city");//城市
-
-                System.out.println("解析得到的地址为："+ city + "市,");
-                String apiURL="";
-                if(city.equals("内网IP")){
-                    apiURL = "http://wthrcdn.etouch.cn/weather_mini?city=" + "杭州市";
-                }else{
-                    apiURL = "http://wthrcdn.etouch.cn/weather_mini?city=" + city;
-                }
-
-                ResponseEntity<String> responseEntity = restTemplate.getForEntity(apiURL, String.class);
-                Object parse = JSONObject.parse(responseEntity.getBody());
-                Result result1 =new Result(200,"SUCCESS","common_weather",parse);
-                String Respone = JSONObject.toJSONString(result1);
-
-                ctx.channel().writeAndFlush(new TextWebSocketFrame(Respone));
-                System.out.println(responseEntity.getBody());
                 break;
         }
     }
